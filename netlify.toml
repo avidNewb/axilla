@@ -1,29 +1,30 @@
 [context.production.environment]
   PIXLET_BINARY = "pixlet-aws"
   PIXLET_BINARY_PATH = "./functions/axilla/pixlet/"
-  MONGODB_URI = mongodb+srv://thatbamaguy:GreenDogJacket0408@avidcluster0.4ntktrf.mongodb.net/?retryWrites=true&w=majority
-  MONGODB_DATABASE = sample_mflix
-  MONGODB_COLLECTION = movies
+  MONGODB_URI = "mongodb+srv://thatbamaguy:GreenDogJacket0408@avidcluster0.4ntktrf.mongodb.net/?retryWrites=true&w=majority"
+  MONGODB_DATABASE = "sample_mflix"
+  MONGODB_COLLECTION = "movies"
   LD_LIBRARY_PATH = "./functions/axilla/lib"
 
 [context.branch-deploy.environment]
   PIXLET_BINARY = "pixlet-aws"
   PIXLET_BINARY_PATH = "./functions/axilla/pixlet/"
-  MONGODB_URI = mongodb+srv://thatbamaguy:GreenDogJacket0408@avidcluster0.4ntktrf.mongodb.net/?retryWrites=true&w=majority
-  MONGODB_DATABASE = sample_mflix
-  MONGODB_COLLECTION = movies
+  MONGODB_URI = "mongodb+srv://thatbamaguy:GreenDogJacket0408@avidcluster0.4ntktrf.mongodb.net/?retryWrites=true&w=majority"
+  MONGODB_DATABASE = "sample_mflix"
+  MONGODB_COLLECTION = "movies"
   LD_LIBRARY_PATH = "./functions/axilla/lib"
 
 [context.deploy-preview.environment]
   PIXLET_BINARY = "pixlet-aws"
   PIXLET_BINARY_PATH = "./functions/axilla/pixlet/"
-  MONGODB_URI = mongodb+srv://thatbamaguy:GreenDogJacket0408@avidcluster0.4ntktrf.mongodb.net/?retryWrites=true&w=majority
-  MONGODB_DATABASE = sample_mflix
-  MONGODB_COLLECTION = movies
+  MONGODB_URI = "mongodb+srv://thatbamaguy:GreenDogJacket0408@avidcluster0.4ntktrf.mongodb.net/?retryWrites=true&w=majority"
+  MONGODB_DATABASE = "sample_mflix"
+  MONGODB_COLLECTION = "movies"
   LD_LIBRARY_PATH = "./functions/axilla/lib"
 
 [[plugins]]
   package = "netlify-plugin-inline-functions-env"
+  package = "mongodb"
 
 [[redirects]]
   from = "/"
