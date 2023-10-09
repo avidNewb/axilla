@@ -34,13 +34,6 @@ const PIXLET_BINARY_PATH = process.env.PIXLET_BINARY_PATH
 const LD_LIBRARY_PATH = process.env.LD_LIBRARY_PATH
 /* eslint-enable prefer-destructuring */
 
-
-const { MongoClient } = require("mongodb");
-
-const mongoClient = new MongoClient(process.env.MONGODB_URI);
-
-const clientPromise = mongoClient.connect();
-
 // static paths
 const TMP_PATH = '/tmp/'
 const ASSETS_PATH = path.join(__dirname, 'assets')
@@ -68,7 +61,6 @@ exports.handler = async (event) => {
   const output = (params.output && OUTPUTS[params.output.toUpperCase()]) || OUTPUTS.HTML
   const cssClass = params.pixelate === 'false' ? '' : CSS_CLASSES.PIXETLATE
   const isVersionRequest = params.version === 'true'
-  const isMongoRequest = params.mongo === 'true'
 
   // setup pixlet
   const outputPath = getOutputPath(format)
@@ -125,21 +117,6 @@ exports.handler = async (event) => {
       }
     }
   }
-
-  If (isMongoRequest){
-      try {
-        const database = (await clientPromise).db(process.env.MONGODB_DATABASE);
-        const collection = database.collection(process.env.MONGODB_COLLECTION);
-        const results = await collection.find({}).limit(10).toArray();
-        return {
-          statusCode: 200,
-          body: JSON.stringify(results),
-        }
-      } catch (error) {
-        return { statusCode: 500, body: error.toString() }
-      }
-    }
-}
 
   // run pixlet
   try {
