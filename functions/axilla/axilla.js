@@ -62,6 +62,10 @@ exports.handler = async (event) => {
   const cssClass = params.pixelate === 'false' ? '' : CSS_CLASSES.PIXETLATE
   const isVersionRequest = params.version === 'true'
 
+  const { MongoClient } = require("mongodb");
+  const mongoClient = new MongoClient(process.env.MONGODB_URI);
+  const clientPromise = mongoClient.connect();
+
   // setup pixlet
   const outputPath = getOutputPath(format)
   const args = ['render', appletPath, `--output=${outputPath}`]
@@ -117,7 +121,6 @@ exports.handler = async (event) => {
       }
     }
   }
-
   // run pixlet
   try {
     await executePixlet(args)
