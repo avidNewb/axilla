@@ -4,8 +4,6 @@ const util = require('util')
 const fetch = require('node-fetch')
 const execFile = util.promisify(require('child_process').execFile)
 
-const { MongoClient } = require("mongodb");
-
 const RESERVERD_PARAMS = [
   'format',
   'output',
@@ -36,7 +34,11 @@ const PIXLET_BINARY_PATH = process.env.PIXLET_BINARY_PATH
 const LD_LIBRARY_PATH = process.env.LD_LIBRARY_PATH
 /* eslint-enable prefer-destructuring */
 
+
+const { MongoClient } = require("mongodb");
+
 const mongoClient = new MongoClient(process.env.MONGODB_URI);
+
 const clientPromise = mongoClient.connect();
 
 // static paths
@@ -123,86 +125,100 @@ exports.handler = async (event) => {
       }
     }
   }
+
+  If (isMongoRequest){
+      try {
+        const database = (await clientPromise).db(process.env.MONGODB_DATABASE);
+        const collection = database.collection(process.env.MONGODB_COLLECTION);
+        const results = await collection.find({}).limit(10).toArray();
+        return {
+          statusCode: 200,
+          body: JSON.stringify(results),
+        }
+      } catch (error) {
+        return { statusCode: 500, body: error.toString() }
+      }
+    }
 }
 
-// run pixlet
-try {
-  await executePixlet(args)
-} catch (error) {
-  const appletMessage = !!appletUrl ? 'Ensure the provided applet is valid.' : ''
-  return {
-    statusCode: 500,
-    body: `Error: Failed to generate image with Pixlet. ${appletMessage} ${error.message}`,
-    error: error.message,
+  // run pixlet
+  try {
+    await executePixlet(args)
+  } catch (error) {
+    const appletMessage = !!appletUrl ? 'Ensure the provided applet is valid.' : ''
+    return {
+      statusCode: 500,
+      body: `Error: Failed to generate image with Pixlet. ${appletMessage} ${error.message}`,
+      error: error.message,
+    }
   }
-}
 
-// base64 encode the generated image
-const imageBase64 = await fs.readFile(outputPath, 'base64', function (err, data) {
-  if (err) {
+  // base64 encode the generated image
+  const imageBase64 = await fs.readFile(outputPath, 'base64', function(err, data){
+	  if (err) {
     return {
       statusCode: 500,
       body: `Error: Could not read output file. ${error.message} ${outputPath}`,
     }
   }
-});
+  });
 
-// delete the temp input and output files
-try { await fs.unlink(INPUT_APPLET_PATH) } catch (error) { /* noop */ }
-try { await fs.unlink(outputPath) } catch (error) { /* noop */ }
+  // delete the temp input and output files
+  try { await fs.unlink(INPUT_APPLET_PATH) } catch (error) { /* noop */ }
+  try { await fs.unlink(outputPath) } catch (error) { /* noop */ }
 
-// check base64 data
-if (!imageBase64) {
-  return {
-    statusCode: 500,
-    body: 'Error: Could not read output image.',
+  // check base64 data
+  if (!imageBase64) {
+    return {
+      statusCode: 500,
+      body: 'Error: Could not read output image.',
+    }
   }
-}
 
-switch (output) {
-  // raw image
-  case OUTPUTS.IMAGE:
-    return {
-      statusCode: 200,
-      headers: { 'content-type': `image/${format}` },
-      body: imageBase64,
-      isBase64Encoded: true,
-    }
-
-  // base64 image text
-  case OUTPUTS.BASE64:
-    return {
-      statusCode: 200,
-      headers: { 'content-type': 'text/plain' },
-      body: imageBase64,
-    }
-
-  // html preview
-  case OUTPUTS.HTML:
-  default: {
-    let html
-    try {
-      html = await fs.readFile(HTML_TEMPLATE_PATH, 'utf8')
-      html = html.replace(/\{format\}|\{image\}|\{class\}/gi, (match) => {
-        if (match === '{format}') return format
-        if (match === '{image}') return imageBase64
-        if (match === '{class}') return cssClass
-        return match
-      })
-    } catch (error) {
+  switch (output) {
+    // raw image
+    case OUTPUTS.IMAGE:
       return {
-        statusCode: 500,
-        body: `Error: Could not generate html. ${error.message}`,
+        statusCode: 200,
+        headers: { 'content-type': `image/${format}` },
+        body: imageBase64,
+        isBase64Encoded: true,
+      }
+
+    // base64 image text
+    case OUTPUTS.BASE64:
+      return {
+        statusCode: 200,
+        headers: { 'content-type': 'text/plain' },
+        body: imageBase64,
+      }
+
+    // html preview
+    case OUTPUTS.HTML:
+    default: {
+      let html
+      try {
+        html = await fs.readFile(HTML_TEMPLATE_PATH, 'utf8')
+        html = html.replace(/\{format\}|\{image\}|\{class\}/gi, (match) => {
+          if (match === '{format}') return format
+          if (match === '{image}') return imageBase64
+          if (match === '{class}') return cssClass
+          return match
+        })
+      } catch (error) {
+        return {
+          statusCode: 500,
+          body: `Error: Could not generate html. ${error.message}`,
+        }
+      }
+
+      return {
+        statusCode: 200,
+        headers: { 'content-type': 'text/html' },
+        body: html,
       }
     }
-
-    return {
-      statusCode: 200,
-      headers: { 'content-type': 'text/html' },
-      body: html,
-    }
   }
-}
 }
 
 // for use with unit tests
