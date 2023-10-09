@@ -25,6 +25,7 @@
 [[plugins]]
   package = "netlify-plugin-inline-functions-env"
 
+
 [[redirects]]
   from = "/"
   to = "/.netlify/functions/axilla"
