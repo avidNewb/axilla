@@ -61,6 +61,7 @@ exports.handler = async (event) => {
   const output = (params.output && OUTPUTS[params.output.toUpperCase()]) || OUTPUTS.HTML
   const cssClass = params.pixelate === 'false' ? '' : CSS_CLASSES.PIXETLATE
   const isVersionRequest = params.version === 'true'
+  const isMongoRequest = params.mongo === 'true'
 
   const { MongoClient } = require("mongodb");
   const mongoClient = new MongoClient(process.env.MONGODB_URI);
@@ -87,6 +88,20 @@ exports.handler = async (event) => {
         statusCode: 500,
         body: `Error: Could not get version info. ${error.message}`,
       }
+    }
+  }
+
+  if (isMongoRequest) {
+    try {
+      const database = (await clientPromise).db(process.env.MONGODB_DATABASE);
+      const collection = database.collection(process.env.MONGODB_COLLECTION);
+      const results = await collection.find({}).limit(10).toArray();
+      return {
+        statusCode: 200,
+        body: JSON.stringify(results),
+      }
+    } catch (error) {
+      return { statusCode: 500, body: error.toString() }
     }
   }
 
@@ -134,13 +149,13 @@ exports.handler = async (event) => {
   }
 
   // base64 encode the generated image
-  const imageBase64 = await fs.readFile(outputPath, 'base64', function(err, data){
-	  if (err) {
-    return {
-      statusCode: 500,
-      body: `Error: Could not read output file. ${error.message} ${outputPath}`,
+  const imageBase64 = await fs.readFile(outputPath, 'base64', function (err, data) {
+    if (err) {
+      return {
+        statusCode: 500,
+        body: `Error: Could not read output file. ${error.message} ${outputPath}`,
+      }
     }
-  }
   });
 
   // delete the temp input and output files
