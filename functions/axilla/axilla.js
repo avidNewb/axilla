@@ -258,7 +258,10 @@ exports.handler = async (event) => {
           //jsonObj[`webp`] = JSON.stringify(imageBase64);
           var response = new Response(formData);
           //response.status = 200;
-          return  response;
+          return  {
+            statusCode: response.status,
+            body: response.formData
+          }
         // return{
         //   statusCode: 200,
         //   headers: {'content-type':'multipart/form-data'},
