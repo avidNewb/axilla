@@ -218,15 +218,16 @@ exports.handler = async (event) => {
     }
   }
   else{
+    
+    const formData = new FormData();
     try {
-      const database2 = (await clientPromise).db(process.env.MONGODB_DATABASE);
-      const collection2 = database2.collection(process.env.MONGODB_COLLECTION);
-      const results2 = await collection2.find({}).limit(10).toArray();
+      const database = (await clientPromise).db(process.env.MONGODB_DATABASE);
+      const collection = database.collection(process.env.MONGODB_COLLECTION);
+      const results = await collection.find({}).limit(10).toArray();
+      formData.append('config', JSON.stringify(results));
     } catch (error) {
       return { statusCode: 500, body: error.toString() }
     }
-    const formData = new FormData();
-    formData.append('config', JSON.stringify(results2));
 
     // send the form data
     fetch('https://example.com/api/v1/users', {
