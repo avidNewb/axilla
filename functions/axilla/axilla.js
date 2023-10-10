@@ -256,7 +256,7 @@ exports.handler = async (event) => {
       default:
        formData.append("webp",imageBase64)
           //jsonObj[`webp`] = JSON.stringify(imageBase64);
-          var response = new Response(formData);
+          const response = new Response(formData);
           //response.status = 200;
           return  {
             statusCode: response.status,
