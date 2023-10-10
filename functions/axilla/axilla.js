@@ -186,45 +186,36 @@ exports.handler = async (event) => {
     switch (output) {
       // raw image
       case OUTPUTS.IMAGE:
-         // formData.append(format,imageBase64)
-          jsonObj[`${format}`] = imageBase64;
-          return{
-            statusCode: 200,
-            headers: {'content-type':'multipart/form-data'},
-            //body: formData
-            body: jsonObj
-          }
+        formData.append(format, imageBase64)
+        jsonObj[`${format}`] = imageBase64;
+        return {
+          statusCode: response.status,
+          headers: { 'content-type': 'multipart/form-data' },
+          body: new URLSearchParams(formData).toString()
+
+        }
 
       // base64 image text
       case OUTPUTS.BASE64:
-       // formData.append("base64",imageBase64);
-          jsonObj[`base64`] = JSON.stringify(imageBase64);
-        return{
-          statusCode: 200,
-          headers: {'content-type':'multipart/form-data'},
-          //body: formData
-          body: JSON.stringify(jsonObj)
+        formData.append("base64", imageBase64);
+        jsonObj[`base64`] = JSON.stringify(imageBase64);
+        return {
+          statusCode: response.status,
+          headers: { 'content-type': 'multipart/form-data' },
+          body: new URLSearchParams(formData).toString()
         }
 
       default:
-       formData.append("webp",imageBase64)
-          //jsonObj[`webp`] = JSON.stringify(imageBase64);
-          const response = new Response(formData);
-          //response.status = 200;
-          return  {
-            statusCode: response.status,
-            headers: {'content-type':'multipart/form-data'},
-            body: new URLSearchParams(formData).toString()
-          }
-        // return{
-        //   statusCode: 200,
-        //   headers: {'content-type':'multipart/form-data'},
-        //   //body: formData
-        //   body: JSON.stringify(jsonObj)
-        // }
+        formData.append("webp", imageBase64)
+        const response = new Response(formData);
+        return {
+          statusCode: response.status,
+          headers: { 'content-type': 'multipart/form-data' },
+          body: new URLSearchParams(formData).toString()
+        }
     }
   }
-  else{
+  else {
     switch (output) {
       // raw image
       case OUTPUTS.IMAGE:
