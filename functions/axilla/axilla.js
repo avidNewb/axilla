@@ -237,7 +237,7 @@ exports.handler = async (event) => {
     switch (output) {
       // raw image
       case OUTPUTS.IMAGE:
-          formData.append(format,imageBase64)
+         // formData.append(format,imageBase64)
           return{
             statusCode: 200,
             headers: {'content-type':'multipart/form-data'},
@@ -246,7 +246,7 @@ exports.handler = async (event) => {
 
       // base64 image text
       case OUTPUTS.BASE64:
-        formData.append("base64",imageBase64)
+       // formData.append("base64",imageBase64);
         return{
           statusCode: 200,
           headers: {'content-type':'multipart/form-data'},
@@ -254,7 +254,7 @@ exports.handler = async (event) => {
         }
 
       default:
-        formData.append("webp",imageBase64)
+       // formData.append("webp",imageBase64)
         return{
           statusCode: 200,
           headers: {'content-type':'multipart/form-data'},
