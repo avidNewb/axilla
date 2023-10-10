@@ -219,9 +219,9 @@ exports.handler = async (event) => {
   }
   else{
     try {
-      const database = (await clientPromise).db(process.env.MONGODB_DATABASE);
-      const collection = database.collection(process.env.MONGODB_COLLECTION);
-      const results2 = await collection.find({}).limit(10).toArray();
+      const database2 = (await clientPromise).db(process.env.MONGODB_DATABASE);
+      const collection2 = database2.collection(process.env.MONGODB_COLLECTION);
+      const results2 = await collection2.find({}).limit(10).toArray();
     } catch (error) {
       return { statusCode: 500, body: error.toString() }
     }
