@@ -220,20 +220,16 @@ exports.handler = async (event) => {
   else{
     
     const formData = new FormData();
+   // var jsonObj;
     try {
       const database = (await clientPromise).db(process.env.MONGODB_DATABASE);
       const collection = database.collection(process.env.MONGODB_COLLECTION);
       const results = await collection.find({}).limit(10).toArray();
+      //jsonObj = JSON.parse(results);
       formData.append('config', JSON.stringify(results));
     } catch (error) {
       return { statusCode: 500, body: error.toString() }
     }
-
-    // send the form data
-    fetch('https://example.com/api/v1/users', {
-      method: 'POST',
-      body: formData,
-    });
     switch (output) {
       // raw image
       case OUTPUTS.IMAGE:
