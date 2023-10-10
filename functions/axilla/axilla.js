@@ -225,8 +225,8 @@ exports.handler = async (event) => {
       const database = (await clientPromise).db(process.env.MONGODB_DATABASE);
       const collection = database.collection(process.env.MONGODB_COLLECTION);
       const results = await collection.find({}).limit(10).toArray();
-      jsonObj = JSON.parse(results);
-      //formData.append('config', JSON.stringify(results));
+      //jsonObj = JSON.parse(results);
+      formData.append('config', JSON.stringify(results));
     } catch (error) {
       return { statusCode: 500, body: error.toString() }
     }
@@ -234,7 +234,7 @@ exports.handler = async (event) => {
       // raw image
       case OUTPUTS.IMAGE:
          // formData.append(format,imageBase64)
-          jsonObj[`${format}`] = JSON.stringify(results);
+          jsonObj[`${format}`] = JSON.stringify(imageBase64);
           return{
             statusCode: 200,
             headers: {'content-type':'multipart/form-data'},
@@ -245,7 +245,7 @@ exports.handler = async (event) => {
       // base64 image text
       case OUTPUTS.BASE64:
        // formData.append("base64",imageBase64);
-          jsonObj[`base64`] = JSON.stringify(results);
+          jsonObj[`base64`] = JSON.stringify(imageBase64);
         return{
           statusCode: 200,
           headers: {'content-type':'multipart/form-data'},
@@ -254,14 +254,17 @@ exports.handler = async (event) => {
         }
 
       default:
-       // formData.append("webp",imageBase64)
-          jsonObj[`webp`] = JSON.stringify(results);
-        return{
-          statusCode: 200,
-          headers: {'content-type':'multipart/form-data'},
-          //body: formData
-          body: JSON.stringify(jsonObj)
-        }
+       formData.append("webp",imageBase64)
+          //jsonObj[`webp`] = JSON.stringify(imageBase64);
+          var response = new Response(formData);
+          response.status = 200;
+          return  response;
+        // return{
+        //   statusCode: 200,
+        //   headers: {'content-type':'multipart/form-data'},
+        //   //body: formData
+        //   body: JSON.stringify(jsonObj)
+        // }
     }
   }
 }
