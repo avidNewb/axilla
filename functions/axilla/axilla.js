@@ -62,6 +62,7 @@ exports.handler = async (event) => {
   const cssClass = params.pixelate === 'false' ? '' : CSS_CLASSES.PIXETLATE
   const isVersionRequest = params.version === 'true'
   const isMongoRequest = params.mongo === 'true'
+  const isDeviceConfigRequest = params.config === 'true'
 
   const { MongoClient } = require("mongodb");
   const mongoClient = new MongoClient(process.env.MONGODB_URI);
@@ -124,7 +125,7 @@ exports.handler = async (event) => {
       if (!response.ok) {
         return {
           statusCode: response.status,
-          body: `Error: Could not fetch applet. ${response.statusText}`,
+          body: `Error: Could not fetch applet. ${response.statusText}`
         }
       }
       const appletText = await response.text()
@@ -132,7 +133,7 @@ exports.handler = async (event) => {
     } catch (error) {
       return {
         statusCode: 500,
-        body: `Error: Could not download applet. ${error.message}`,
+        body: `Error: Could not download applet. ${error.message}`
       }
     }
   }
@@ -144,7 +145,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 500,
       body: `Error: Failed to generate image with Pixlet. ${appletMessage} ${error.message}`,
-      error: error.message,
+      error: error.message
     }
   }
 
@@ -153,7 +154,7 @@ exports.handler = async (event) => {
     if (err) {
       return {
         statusCode: 500,
-        body: `Error: Could not read output file. ${error.message} ${outputPath}`,
+        body: `Error: Could not read output file. ${error.message} ${outputPath}`
       }
     }
   });
@@ -166,52 +167,98 @@ exports.handler = async (event) => {
   if (!imageBase64) {
     return {
       statusCode: 500,
-      body: 'Error: Could not read output image.',
+      body: 'Error: Could not read output image.'
     }
   }
 
-  switch (output) {
-    // raw image
-    case OUTPUTS.IMAGE:
-      return {
-        statusCode: 200,
-        headers: { 'content-type': `image/${format}` },
-        body: imageBase64,
-        isBase64Encoded: true,
-      }
-
-    // base64 image text
-    case OUTPUTS.BASE64:
-      return {
-        statusCode: 200,
-        headers: { 'content-type': 'text/plain' },
-        body: imageBase64,
-      }
-
-    // html preview
-    case OUTPUTS.HTML:
-    default: {
-      let html
-      try {
-        html = await fs.readFile(HTML_TEMPLATE_PATH, 'utf8')
-        html = html.replace(/\{format\}|\{image\}|\{class\}/gi, (match) => {
-          if (match === '{format}') return format
-          if (match === '{image}') return imageBase64
-          if (match === '{class}') return cssClass
-          return match
-        })
-      } catch (error) {
+  if (!isDeviceConfigRequest) {
+    switch (output) {
+      // raw image
+      case OUTPUTS.IMAGE:
         return {
-          statusCode: 500,
-          body: `Error: Could not generate html. ${error.message}`,
+          statusCode: 200,
+          headers: { 'content-type': `image/${format}` },
+          body: imageBase64,
+          isBase64Encoded: true
+        }
+
+      // base64 image text
+      case OUTPUTS.BASE64:
+        return {
+          statusCode: 200,
+          headers: { 'content-type': 'text/plain' },
+          body: imageBase64
+        }
+
+      // html preview
+      case OUTPUTS.HTML:
+      default: {
+        let html
+        try {
+          html = await fs.readFile(HTML_TEMPLATE_PATH, 'utf8')
+          html = html.replace(/\{format\}|\{image\}|\{class\}/gi, (match) => {
+            if (match === '{format}') return format
+            if (match === '{image}') return imageBase64
+            if (match === '{class}') return cssClass
+            return match
+          })
+        } catch (error) {
+          return {
+            statusCode: 500,
+            body: `Error: Could not generate html. ${error.message}`
+          }
+        }
+
+        return {
+          statusCode: 200,
+          headers: { 'content-type': 'text/html' },
+          body: html
         }
       }
+    }
+  }
+  else{
+    try {
+      const database = (await clientPromise).db(process.env.MONGODB_DATABASE);
+      const collection = database.collection(process.env.MONGODB_COLLECTION);
+      const results = await collection.find({}).limit(10).toArray();
+    } catch (error) {
+      return { statusCode: 500, body: error.toString() }
+    }
+    const formData = new FormData();
+    formData.append('config', JSON.stringify(results));
 
-      return {
-        statusCode: 200,
-        headers: { 'content-type': 'text/html' },
-        body: html,
-      }
+    // send the form data
+    fetch('https://example.com/api/v1/users', {
+      method: 'POST',
+      body: formData,
+    });
+    switch (output) {
+      // raw image
+      case OUTPUTS.IMAGE:
+          formData.append(format,imageBase64)
+          return{
+            statusCode: 200,
+            headers: {'content-type':'multipart/form-data'},
+            body: formData
+          }
+
+      // base64 image text
+      case OUTPUTS.BASE64:
+        formData.append("base64",imageBase64)
+        return{
+          statusCode: 200,
+          headers: {'content-type':'multipart/form-data'},
+          body: formData
+        }
+
+      default:
+        formData.append("webp",imageBase64)
+        return{
+          statusCode: 200,
+          headers: {'content-type':'multipart/form-data'},
+          body: formData
+        }
     }
   }
 }
