@@ -213,6 +213,7 @@ exports.handler = async (event) => {
           //response.status = 200;
           return  {
             statusCode: response.status,
+            headers: {'content-type':'multipart/form-data'},
             body: new URLSearchParams(formData).toString()
           }
         // return{
